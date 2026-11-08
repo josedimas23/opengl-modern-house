@@ -1,5 +1,8 @@
-PRÁCTICA 4 - CASA MODERNA - JOSE DIMAS SÁNCHEZ CASAS
+# Modern House · OpenGL
 
+Escena 3D en C++ y OpenGL: modelo jerárquico articulado y animado, iluminación plana y Gouraud, texturas y varias cámaras.
+
+**Autor:** Jose Dimas Sánchez Casas
 
 CONTROLES
 
