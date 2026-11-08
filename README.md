@@ -9,8 +9,7 @@ An interactive 3D scene in C++ and legacy OpenGL: an articulated, animated hiera
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey?style=flat-square)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)
 
-<!-- TODO: add docs/demo.gif (house animation) and docs/screenshot.png (house with Gouraud lighting) -->
-![Modern house scene](docs/screenshot.png)
+![The modern house with smooth (Gouraud) lighting, the door open and the solar panel raised](docs/screenshot.png)
 
 ## Features
 
