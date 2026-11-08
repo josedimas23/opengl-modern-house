@@ -3,7 +3,11 @@
 //**************************************************************************
 
 #include <vector>
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 #include "vertex.h"
 #include <stdlib.h>
 
@@ -217,7 +221,7 @@ class _rotacion_ply: public _rotacion{
 
 
 //************************************************************************
-// práctica 3, objeto jerárquico articulado excavadora
+// objeto jerárquico articulado: casa moderna
 //************************************************************************
 
 //************************************************************************

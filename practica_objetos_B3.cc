@@ -2,13 +2,23 @@
 // Práctica 5 
 //**************************************************************************
 
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
 #include <ctype.h>
 #include <math.h>
 #include <vector>
 #include "objetos_B3.h"
 
+// CImg es de terceros: se silencian sus avisos para que se vean los del proyecto
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
+#define cimg_display 0   // CImg solo se usa para leer la textura
+#define cimg_use_jpeg     // lectura de JPEG con libjpeg (sin depender de ImageMagick)
 #include "CImg.h"
+#pragma clang diagnostic pop
 using namespace cimg_library;
 using namespace std;
 
@@ -59,7 +69,7 @@ int ancho, alto;
 
 // FUNCIÓN QUE PREPARA LA TEXTURA
 void OnDraw();
-void prepara_textura(char *file, GLuint *tex_id);
+void prepara_textura(const char *file, GLuint *tex_id);
 
 // FUNCIÓN QUE DIBUJA
 void dibuja(void);
@@ -73,11 +83,7 @@ GLuint textura_id;
 
 // CUBO
 
-GLfloat cubo_vertices[][3] = { -0.9, -0.9, 0.9,      0.9, -0.9, 0.9,
-                                0.9, 0.9, 0.9,      -0.9, 0.9, 0.9,
-                               -0.9, -0.9, -0.9,     0.9, -0.9, -0.9,
-                                0.9, 0.9, -0.9,     -0.9, 0.9, -0.9                               
-                            };
+GLfloat cubo_vertices[][3] = {{-0.9, -0.9, 0.9},  {0.9, -0.9, 0.9},  {0.9, 0.9, 0.9},  {-0.9, 0.9, 0.9},  {-0.9, -0.9, -0.9},  {0.9, -0.9, -0.9},  {0.9, 0.9, -0.9},  {-0.9, 0.9, -0.9}};
 
 
 //**************************************************************************
@@ -309,6 +315,84 @@ void luces()
 //
 //***************************************************************************
 
+//***************************************************************************
+// Leyenda de controles (en la ventana con la tecla H y en la terminal)
+//***************************************************************************
+
+bool mostrar_ayuda=true;
+
+const char *ayuda[]={
+"CONTROLES (H ocultar)   Objeto: A casa  B cubo textura  O beethoven  Z peonza  C cubo  V cubo transf.",
+"P piramide  M cuna  R revolucion  L cilindro  N cono  E esfera  X extrusion   |   Salir: Q",
+"Modo: 1 puntos  2 aristas  3 solido  4 colores aleatorios  5 luz plana  6 luz suave",
+"Casa: S animacion  F1/F2 puerta  F3/F4 ventana  F5/F6 placa  F7/F8 pomo  F9 luz  (Mac: fn+F)",
+"Camara: flechas girar  RePag/AvPag zoom  , una vista  . cuatro vistas",
+"Raton: arrastrar clic derecho = girar camara   clic izquierdo en una pieza = aristas",
+};
+const int lineas_ayuda=sizeof(ayuda)/sizeof(ayuda[0]);
+
+void imprime_ayuda(void)
+{
+printf("\n");
+for (int i=0;i<lineas_ayuda;i++) printf("%s\n",ayuda[i]);
+printf("\n");
+fflush(stdout);
+}
+
+// dibuja la leyenda en 2D sobre la escena, en la esquina superior izquierda
+void draw_ayuda(void)
+{
+void *fuente=GLUT_BITMAP_HELVETICA_12;
+const int alto_linea=15, margen=6;
+int ancho_caja=0, alto_caja=lineas_ayuda*alto_linea+2*margen;
+for (int i=0;i<lineas_ayuda;i++)
+   {int w=0;
+    for (const char *c=ayuda[i]; *c; c++) w+=glutBitmapWidth(fuente,*c);
+    if (w>ancho_caja) ancho_caja=w;
+   }
+ancho_caja+=2*margen;
+if (ancho_caja<ancho) ancho_caja=ancho;   // ocupa todo el ancho de la ventana
+
+glPushAttrib(GL_ALL_ATTRIB_BITS);
+glDisable(GL_LIGHTING);
+glDisable(GL_TEXTURE_2D);
+glDisable(GL_DEPTH_TEST);
+glEnable(GL_BLEND);
+glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+glViewport(0,0,ancho,alto);
+
+glMatrixMode(GL_PROJECTION);
+glPushMatrix();
+glLoadIdentity();
+glOrtho(0,ancho,0,alto,-1,1);
+glMatrixMode(GL_MODELVIEW);
+glPushMatrix();
+glLoadIdentity();
+
+// fondo semitransparente
+glColor4f(1,1,1,0.85);
+glBegin(GL_QUADS);
+glVertex2i(0,alto);
+glVertex2i(ancho_caja,alto);
+glVertex2i(ancho_caja,alto-alto_caja);
+glVertex2i(0,alto-alto_caja);
+glEnd();
+
+// texto
+glColor3f(0,0,0);
+for (int i=0;i<lineas_ayuda;i++)
+   {glRasterPos2i(margen, alto-margen-(i+1)*alto_linea+3);
+    for (const char *c=ayuda[i]; *c; c++) glutBitmapCharacter(fuente, *c);
+   }
+
+glPopMatrix();
+glMatrixMode(GL_PROJECTION);
+glPopMatrix();
+glMatrixMode(GL_MODELVIEW);
+glPopAttrib();
+}
+
 void draw(void){
     
 glDrawBuffer(GL_FRONT);
@@ -320,6 +404,7 @@ if(cambio==0){
   draw_objects();
 }else cambio_camara();
 luces();
+if (mostrar_ayuda) draw_ayuda();
 
 if (t_objeto==CASA_MODERNA)
   {glDrawBuffer(GL_BACK);
@@ -371,6 +456,7 @@ void normal_key(unsigned char Tecla1,int x,int y)
 {
 switch (toupper(Tecla1)){
 	case 'Q':exit(0);
+	case 'H':mostrar_ayuda=!mostrar_ayuda;break;
 	case '1':modo=POINTS;break;
 	case '2':modo=EDGES;break;
 	case '3':modo=SOLID;break;
@@ -434,31 +520,39 @@ switch (Tecla1){
     //PUERTA
     case GLUT_KEY_F1:casa_moderna.giro_puerta-=1; //abrir puerta
         if (casa_moderna.giro_puerta < casa_moderna.giro_puerta_min)
-            casa_moderna.giro_puerta = casa_moderna.giro_puerta_min;break;
+            casa_moderna.giro_puerta = casa_moderna.giro_puerta_min;
+        break;
    case GLUT_KEY_F2:casa_moderna.giro_puerta+=1;  //cerrar puerta
         if (casa_moderna.giro_puerta > casa_moderna.giro_puerta_max)
-            casa_moderna.giro_puerta = casa_moderna.giro_puerta_max;break;
+            casa_moderna.giro_puerta = casa_moderna.giro_puerta_max;
+        break;
     //VENTANA
     case GLUT_KEY_F3:casa_moderna.giro_ventana-=1; //Abrir ventana
         if (casa_moderna.giro_ventana < casa_moderna.giro_ventana_min)
-            casa_moderna.giro_ventana = casa_moderna.giro_ventana_min;break;
+            casa_moderna.giro_ventana = casa_moderna.giro_ventana_min;
+        break;
    case GLUT_KEY_F4:casa_moderna.giro_ventana+=1; //Cerrar ventana
         if (casa_moderna.giro_ventana > casa_moderna.giro_ventana_max)
-            casa_moderna.giro_ventana = casa_moderna.giro_ventana_max;break;
+            casa_moderna.giro_ventana = casa_moderna.giro_ventana_max;
+        break;
     //PLACA SOLAR
     case GLUT_KEY_F5:casa_moderna.giro_placa_solar-=1; //Subir placa 
         if (casa_moderna.giro_placa_solar < casa_moderna.giro_placa_solar_min)
-            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_min;break;
+            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_min;
+        break;
    case GLUT_KEY_F6:casa_moderna.giro_placa_solar+=1; //Bajar Placa
         if (casa_moderna.giro_placa_solar > casa_moderna.giro_placa_solar_max)
-            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_max;break;
+            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_max;
+        break;
     //POMO
     case GLUT_KEY_F7:casa_moderna.giro_pomo+=1; //Girar pomo izquierda
         if (casa_moderna.giro_pomo > casa_moderna.giro_pomo_max)
-            casa_moderna.giro_pomo = casa_moderna.giro_pomo_max;break;  
+            casa_moderna.giro_pomo = casa_moderna.giro_pomo_max;
+        break;
     case GLUT_KEY_F8:casa_moderna.giro_pomo-=1; //Girar pomo derecha
         if (casa_moderna.giro_pomo < casa_moderna.giro_pomo_min)
-            casa_moderna.giro_pomo = casa_moderna.giro_pomo_min;break; 
+            casa_moderna.giro_pomo = casa_moderna.giro_pomo_min;
+        break;
 
     case GLUT_KEY_F9:alfa+=5;break;                             
 	}
@@ -507,7 +601,7 @@ int i;
 for (i=0;i<casa_moderna.piezas;i++)
    {if (color[0]==casa_moderna.color_select[i].r &&
         color[1]==casa_moderna.color_select[i].g &&
-        color[2]==casa_moderna.color_select[i].r)
+        color[2]==casa_moderna.color_select[i].b)
        {if (casa_moderna.activo[i]==0) 
                       {casa_moderna.activo[i]=1;
                       }
@@ -635,7 +729,7 @@ int main(int argc, char *argv[] )
 vector<_vertex3f> perfil, poligono;
 _vertex3f aux;
 int num =6;
-float radio = 0.5, radio1 = 1.0;
+float radio = 0.5;
 
 for (int i=1;i<=num/2;i++)
   {aux.x=radio*cos(M_PI*i/(num*1.0)-M_PI/2.0);
@@ -676,11 +770,8 @@ glutInit(&argc, argv);
 // GLUT_RGB -> memoria de imagen con componentes rojo, verde y azul para cada pixel
 // GLUT_RGBA -> memoria de imagen con componentes rojo, verde, azul y alfa para cada pixel
 // GLUT_DEPTH -> memoria de profundidad o z-bufer
-// GLUT_STENCIL -> memoria de estarcido_rotation Rotation;
+// GLUT_STENCIL -> memoria de estarcido
 glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-
-// glEnable(GL_DEPTH_TEST);
-// glMatrixMode(GL_PROJECTION);
 
 // posicion de la esquina inferior izquierdad de la ventana
 glutInitWindowPosition(Window_x,Window_y);
@@ -690,11 +781,10 @@ glutInitWindowSize(Window_width,Window_high);
 
 // llamada para crear la ventana, indicando el titulo (no se visualiza hasta que se llama
 // al bucle de eventos)
-glutCreateWindow("PRACTICA - 5");
+glutCreateWindow("Modern House");
 
 // asignación de la funcion llamada "dibujar" al evento de dibujo
 glutDisplayFunc(draw);
-//glutDisplayFunc(OnDraw);
 
 // asignación de la funcion llamada "change_window_size" al evento correspondiente
 glutReshapeFunc(change_window_size);
@@ -717,11 +807,11 @@ glutSwapBuffers();
 // creación del objeto ply
 ply.parametros(argv[1]);
 ply1.parametros(argv[2],12);
-//ply = new _objeto_ply(argv[1]);
 
 
 
 // inicio del bucle de eventos
+imprime_ayuda();
 glutMainLoop();
 
 libera_textura(&textura_id);
@@ -729,7 +819,7 @@ return 0;
 }
 
 // ----------------------------------------------------------------------
-void prepara_textura (char *file, GLuint *tex_id )
+void prepara_textura (const char *file, GLuint *tex_id )
 {
    vector<unsigned char> data; 
    CImg<unsigned char> image;
@@ -761,21 +851,21 @@ void prepara_textura (char *file, GLuint *tex_id )
 
 // coordenadas cubo
 
-GLfloat caraDeAbajo[][2] = {0.25, 0.75,      0.5, 0.75,      0.5, 0.5,   0.25, 0.5}, 
-    caraDeArriba[][2] = {0.25, 0.25,     0.5, 0.25,      0.5, 0.0,   0.25, 0.0};
+GLfloat caraDeAbajo[][2] = {{0.25, 0.75},  {0.5, 0.75},  {0.5, 0.5},  {0.25, 0.5}}, 
+    caraDeArriba[][2] = {{0.25, 0.25},  {0.5, 0.25},  {0.5, 0.0},  {0.25, 0.0}};
         
-GLfloat caraDeDelante[][2] = {0.25, 0.5,     0.5, 0.5,       0.5, 0.25,     0.25, 0.25},
-    caraDeAtras[][2] = {1.0,0.5,         0.75, 0.5,      0.75, 0.25,    1.0, 0.25};
+GLfloat caraDeDelante[][2] = {{0.25, 0.5},  {0.5, 0.5},  {0.5, 0.25},  {0.25, 0.25}},
+    caraDeAtras[][2] = {{1.0, 0.5},  {0.75, 0.5},  {0.75, 0.25},  {1.0, 0.25}};
              
-GLfloat caraIzquierda[][2] = {0.25, 0.5,     0.0, 0.5,       0.0, 0.25,      0.25, 0.25},  
-    caraDerecha[][2] = {0.5, 0.5,        0.75, 0.5,      0.75, 0.25,     0.5, 0.25};
+GLfloat caraIzquierda[][2] = {{0.25, 0.5},  {0.0, 0.5},  {0.0, 0.25},  {0.25, 0.25}},  
+    caraDerecha[][2] = {{0.5, 0.5},  {0.75, 0.5},  {0.75, 0.25},  {0.5, 0.25}};
         
 void dibuja (void)
 {
    glColor3f(1.0,1.0,1.0);
    glEnable(GL_TEXTURE_2D);
    glEnableClientState(GL_VERTEX_ARRAY);
-   glEnableClientState (GL_TEXTURE_COORD_ARRAY_EXT);
+   glEnableClientState (GL_TEXTURE_COORD_ARRAY);
 
    glBindTexture(GL_TEXTURE_2D, textura_id);
 

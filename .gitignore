@@ -1,5 +1,14 @@
-.DS_Store
+# Compilación
 *.o
+*.dSYM/
 practica_objetos_B3
-.vscode/
+
+# Sistema operativo
+.DS_Store
 .directory
+
+# Editores / IDE
+.vscode/
+.idea/
+nbproject/
+*.swp
