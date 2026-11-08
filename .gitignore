@@ -1,0 +1,5 @@
+.DS_Store
+*.o
+practica_objetos_B3
+.vscode/
+.directory
