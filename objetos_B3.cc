@@ -411,6 +411,7 @@ _cubo_transf::_cubo_transf(float tam)
 	// triangulos
   caras.resize(6);
 
+  // cubo sin 3 caras: las caras comentadas no se dibujan
   //caras[0]._0=0;caras[0]._1=1;caras[0]._2=3;
   //caras[1]._0=3;caras[1]._1=1;caras[1]._2=2;
   //caras[2]._0=1;caras[2]._1=5;caras[2]._2=2;
@@ -440,7 +441,6 @@ _cubo_transf::_cubo_transf(float tam)
 
 _piramide::_piramide(float tam, float al)
 {
-int i;
 //vertices 
 vertices.resize(5); 
 vertices[0].x=-tam;vertices[0].y=0;vertices[0].z=tam;
@@ -1120,7 +1120,6 @@ _casa_moderna::_casa_moderna(){
 
 void _casa_moderna::draw(_modo modo, float r, float g, float b, float grosor){
   float r_p,g_p,b_p;
-  int tam=2;
 
   r_p=color_pick.r;
   g_p=color_pick.g;

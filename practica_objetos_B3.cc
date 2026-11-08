@@ -12,9 +12,13 @@
 #include <vector>
 #include "objetos_B3.h"
 
+// CImg es de terceros: se silencian sus avisos para que se vean los del proyecto
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Weverything"
 #define cimg_display 0   // CImg solo se usa para leer la textura
 #define cimg_use_jpeg     // lectura de JPEG con libjpeg (sin depender de ImageMagick)
 #include "CImg.h"
+#pragma clang diagnostic pop
 using namespace cimg_library;
 using namespace std;
 
@@ -65,7 +69,7 @@ int ancho, alto;
 
 // FUNCIÓN QUE PREPARA LA TEXTURA
 void OnDraw();
-void prepara_textura(char *file, GLuint *tex_id);
+void prepara_textura(const char *file, GLuint *tex_id);
 
 // FUNCIÓN QUE DIBUJA
 void dibuja(void);
@@ -79,11 +83,7 @@ GLuint textura_id;
 
 // CUBO
 
-GLfloat cubo_vertices[][3] = { -0.9, -0.9, 0.9,      0.9, -0.9, 0.9,
-                                0.9, 0.9, 0.9,      -0.9, 0.9, 0.9,
-                               -0.9, -0.9, -0.9,     0.9, -0.9, -0.9,
-                                0.9, 0.9, -0.9,     -0.9, 0.9, -0.9                               
-                            };
+GLfloat cubo_vertices[][3] = {{-0.9, -0.9, 0.9},  {0.9, -0.9, 0.9},  {0.9, 0.9, 0.9},  {-0.9, 0.9, 0.9},  {-0.9, -0.9, -0.9},  {0.9, -0.9, -0.9},  {0.9, 0.9, -0.9},  {-0.9, 0.9, -0.9}};
 
 
 //**************************************************************************
@@ -520,31 +520,39 @@ switch (Tecla1){
     //PUERTA
     case GLUT_KEY_F1:casa_moderna.giro_puerta-=1; //abrir puerta
         if (casa_moderna.giro_puerta < casa_moderna.giro_puerta_min)
-            casa_moderna.giro_puerta = casa_moderna.giro_puerta_min;break;
+            casa_moderna.giro_puerta = casa_moderna.giro_puerta_min;
+        break;
    case GLUT_KEY_F2:casa_moderna.giro_puerta+=1;  //cerrar puerta
         if (casa_moderna.giro_puerta > casa_moderna.giro_puerta_max)
-            casa_moderna.giro_puerta = casa_moderna.giro_puerta_max;break;
+            casa_moderna.giro_puerta = casa_moderna.giro_puerta_max;
+        break;
     //VENTANA
     case GLUT_KEY_F3:casa_moderna.giro_ventana-=1; //Abrir ventana
         if (casa_moderna.giro_ventana < casa_moderna.giro_ventana_min)
-            casa_moderna.giro_ventana = casa_moderna.giro_ventana_min;break;
+            casa_moderna.giro_ventana = casa_moderna.giro_ventana_min;
+        break;
    case GLUT_KEY_F4:casa_moderna.giro_ventana+=1; //Cerrar ventana
         if (casa_moderna.giro_ventana > casa_moderna.giro_ventana_max)
-            casa_moderna.giro_ventana = casa_moderna.giro_ventana_max;break;
+            casa_moderna.giro_ventana = casa_moderna.giro_ventana_max;
+        break;
     //PLACA SOLAR
     case GLUT_KEY_F5:casa_moderna.giro_placa_solar-=1; //Subir placa 
         if (casa_moderna.giro_placa_solar < casa_moderna.giro_placa_solar_min)
-            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_min;break;
+            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_min;
+        break;
    case GLUT_KEY_F6:casa_moderna.giro_placa_solar+=1; //Bajar Placa
         if (casa_moderna.giro_placa_solar > casa_moderna.giro_placa_solar_max)
-            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_max;break;
+            casa_moderna.giro_placa_solar = casa_moderna.giro_placa_solar_max;
+        break;
     //POMO
     case GLUT_KEY_F7:casa_moderna.giro_pomo+=1; //Girar pomo izquierda
         if (casa_moderna.giro_pomo > casa_moderna.giro_pomo_max)
-            casa_moderna.giro_pomo = casa_moderna.giro_pomo_max;break;  
+            casa_moderna.giro_pomo = casa_moderna.giro_pomo_max;
+        break;
     case GLUT_KEY_F8:casa_moderna.giro_pomo-=1; //Girar pomo derecha
         if (casa_moderna.giro_pomo < casa_moderna.giro_pomo_min)
-            casa_moderna.giro_pomo = casa_moderna.giro_pomo_min;break; 
+            casa_moderna.giro_pomo = casa_moderna.giro_pomo_min;
+        break;
 
     case GLUT_KEY_F9:alfa+=5;break;                             
 	}
@@ -593,7 +601,7 @@ int i;
 for (i=0;i<casa_moderna.piezas;i++)
    {if (color[0]==casa_moderna.color_select[i].r &&
         color[1]==casa_moderna.color_select[i].g &&
-        color[2]==casa_moderna.color_select[i].r)
+        color[2]==casa_moderna.color_select[i].b)
        {if (casa_moderna.activo[i]==0) 
                       {casa_moderna.activo[i]=1;
                       }
@@ -721,7 +729,7 @@ int main(int argc, char *argv[] )
 vector<_vertex3f> perfil, poligono;
 _vertex3f aux;
 int num =6;
-float radio = 0.5, radio1 = 1.0;
+float radio = 0.5;
 
 for (int i=1;i<=num/2;i++)
   {aux.x=radio*cos(M_PI*i/(num*1.0)-M_PI/2.0);
@@ -762,11 +770,8 @@ glutInit(&argc, argv);
 // GLUT_RGB -> memoria de imagen con componentes rojo, verde y azul para cada pixel
 // GLUT_RGBA -> memoria de imagen con componentes rojo, verde, azul y alfa para cada pixel
 // GLUT_DEPTH -> memoria de profundidad o z-bufer
-// GLUT_STENCIL -> memoria de estarcido_rotation Rotation;
+// GLUT_STENCIL -> memoria de estarcido
 glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-
-// glEnable(GL_DEPTH_TEST);
-// glMatrixMode(GL_PROJECTION);
 
 // posicion de la esquina inferior izquierdad de la ventana
 glutInitWindowPosition(Window_x,Window_y);
@@ -776,11 +781,10 @@ glutInitWindowSize(Window_width,Window_high);
 
 // llamada para crear la ventana, indicando el titulo (no se visualiza hasta que se llama
 // al bucle de eventos)
-glutCreateWindow("PRACTICA - 5");
+glutCreateWindow("Modern House");
 
 // asignación de la funcion llamada "dibujar" al evento de dibujo
 glutDisplayFunc(draw);
-//glutDisplayFunc(OnDraw);
 
 // asignación de la funcion llamada "change_window_size" al evento correspondiente
 glutReshapeFunc(change_window_size);
@@ -803,7 +807,6 @@ glutSwapBuffers();
 // creación del objeto ply
 ply.parametros(argv[1]);
 ply1.parametros(argv[2],12);
-//ply = new _objeto_ply(argv[1]);
 
 
 
@@ -816,7 +819,7 @@ return 0;
 }
 
 // ----------------------------------------------------------------------
-void prepara_textura (char *file, GLuint *tex_id )
+void prepara_textura (const char *file, GLuint *tex_id )
 {
    vector<unsigned char> data; 
    CImg<unsigned char> image;
@@ -848,14 +851,14 @@ void prepara_textura (char *file, GLuint *tex_id )
 
 // coordenadas cubo
 
-GLfloat caraDeAbajo[][2] = {0.25, 0.75,      0.5, 0.75,      0.5, 0.5,   0.25, 0.5}, 
-    caraDeArriba[][2] = {0.25, 0.25,     0.5, 0.25,      0.5, 0.0,   0.25, 0.0};
+GLfloat caraDeAbajo[][2] = {{0.25, 0.75},  {0.5, 0.75},  {0.5, 0.5},  {0.25, 0.5}}, 
+    caraDeArriba[][2] = {{0.25, 0.25},  {0.5, 0.25},  {0.5, 0.0},  {0.25, 0.0}};
         
-GLfloat caraDeDelante[][2] = {0.25, 0.5,     0.5, 0.5,       0.5, 0.25,     0.25, 0.25},
-    caraDeAtras[][2] = {1.0,0.5,         0.75, 0.5,      0.75, 0.25,    1.0, 0.25};
+GLfloat caraDeDelante[][2] = {{0.25, 0.5},  {0.5, 0.5},  {0.5, 0.25},  {0.25, 0.25}},
+    caraDeAtras[][2] = {{1.0, 0.5},  {0.75, 0.5},  {0.75, 0.25},  {1.0, 0.25}};
              
-GLfloat caraIzquierda[][2] = {0.25, 0.5,     0.0, 0.5,       0.0, 0.25,      0.25, 0.25},  
-    caraDerecha[][2] = {0.5, 0.5,        0.75, 0.5,      0.75, 0.25,     0.5, 0.25};
+GLfloat caraIzquierda[][2] = {{0.25, 0.5},  {0.0, 0.5},  {0.0, 0.25},  {0.25, 0.25}},  
+    caraDerecha[][2] = {{0.5, 0.5},  {0.75, 0.5},  {0.75, 0.25},  {0.5, 0.25}};
         
 void dibuja (void)
 {
